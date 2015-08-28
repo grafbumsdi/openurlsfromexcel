@@ -10,6 +10,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -37,7 +38,11 @@ func main() {
 	} else {
 		log.Println("Trying to open local file", fileName)
 	}
-	getUrlsFromExcelCellRange(fileName, *cellRangePtr, 0)
+	excelFile, err := filepath.Abs(fileName)
+	if(err != nil) {
+		log.Fatalln("Error while parsing", fileName)
+	}
+	getUrlsFromExcelCellRange(excelFile, *cellRangePtr, 0)
 }
 
 func getUrlsFromExcelCellRange(excelFileName string, cellRange string, sheetIndex int) {
