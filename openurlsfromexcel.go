@@ -2,8 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/tealeg/xlsx"
-	"github.com/toqueteos/webbrowser"
+	// "github.com/tealeg/xlsx"
 	"io"
 	"io/ioutil"
 	"log"
@@ -18,7 +17,7 @@ import (
 func main() {
 	// command line flags
 	fileNamePtr := flag.String("filename", "https://www.dropbox.com/s/qv6qi3oejylsvrm/%C3%9Cbersicht%20Module.xlsx?dl=1", "can be a local file or downloadable file starting with 'http(s)://'")
-	cellRangePtr := flag.String("cellrange", "L2:L20", "a valid xls cell range expression")
+	// cellRangePtr := flag.String("cellrange", "", "a valid xls cell range expression")
 	flag.Parse()
 	
 	fileName := *fileNamePtr
@@ -34,46 +33,24 @@ func main() {
 		defer os.Remove(file.Name())
 		downloadFromUrl(fileName, file.Name())
 		fileName = file.Name()
-	} else {
-		log.Println("Trying to open local file", fileName)
 	}
-	getUrlsFromExcelCellRange(fileName, *cellRangePtr, 0)
+	
 }
-
-func getUrlsFromExcelCellRange(excelFileName string, cellRange string, sheetIndex int) {
+/*
+func getUrlsFromExcelCellRange(excelFileName string, cellRange string, sheetIndex int)
+{
 	xlFile, error := xlsx.OpenFile(excelFileName)
 	if error != nil {
-		log.Fatalln("Error while opening excel file", excelFileName)
+		return error
 	}
 	// sheet := xlFile.Sheets[sheetIndex]
 	sheet := xlFile.Sheets[0]
-	log.Println("Trying to parse cell range", cellRange)
-	columnStart, columnEnd, rowStart, rowEnd := parseRange(cellRange)
-	for r := rowStart - 1; r < rowEnd; r++ {
-		row := sheet.Rows[r]
-		for c := columnStart - 1; c < columnEnd; c++ {
-			cellValue := row.Cells[c].String()
-			match, err := regexp.MatchString("http(s?)://", cellValue)
-			if(err != nil) {
-				log.Println("Error while trying to parse value", cellValue, "from cell rownum", r, "colnum", c)
-			}
-			if(match) {
-				openUrl(cellValue)
-			}
-		}
-	}
 }
-
-func openUrl(url string) {
-	log.Println("Trying to open the following url:", url)
-	webbrowser.Open(url)
-}
-
+*/
 func parseRange(cellRange string) (columnStart, columnEnd, rowStart, rowEnd int){
 	r := regexp.MustCompile("([A-Z]+)([0-9]+):([A-Z]+)([0-9]+)")
 	res := r.FindStringSubmatch(cellRange)
-	// first result is always the whole regex pattern (e.g: A12:B32)
-	// all further results are sub 'patterns'/'groups' that were found (e.g: A, 12, B, 32)
+	
 	if res[0] != cellRange || len(res) != 5 {
 		log.Fatalln("The given cell range", cellRange, "was not valid")
 	}
@@ -91,8 +68,6 @@ func orderAsc(a int, b int) (int, int) {
 	return a, b
 }
 
-// columnindex starting with "A" = 1
-// for example: "AB" = 28
 func convertStringToColumnIndex(columnName string) int{
 	var val float64
 	cl := strings.ToLower(columnName)
