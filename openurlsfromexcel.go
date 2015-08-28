@@ -22,6 +22,7 @@ func main() {
 	cellRangePtr := flag.String("cellrange", "L2:L20", "a valid xls cell range expression")
 	flag.Parse()
 	
+	// if given filename was an URL we have to download it into a temp file
 	fileName := *fileNamePtr
 	match, err := regexp.MatchString("http(s?)://", fileName)
 	if(err != nil) {
@@ -38,14 +39,18 @@ func main() {
 	} else {
 		log.Println("Trying to open local file", fileName)
 	}
+	
+	// open excelfile and open URLs from it
 	excelFile, err := filepath.Abs(fileName)
 	if(err != nil) {
 		log.Fatalln("Error while parsing", fileName)
 	}
-	getUrlsFromExcelCellRange(excelFile, *cellRangePtr, 0)
+	openUrlsFromExcelCellRange(excelFile, *cellRangePtr, 0)
 }
 
-func getUrlsFromExcelCellRange(excelFileName string, cellRange string, sheetIndex int) {
+// Opens the given excel file, reads the value of each cell in the given cell range
+// and tries to open each value in the default browser
+func openUrlsFromExcelCellRange(excelFileName string, cellRange string, sheetIndex int) {
 	xlFile, error := xlsx.OpenFile(excelFileName)
 	if error != nil {
 		log.Fatalln("Error while opening excel file", excelFileName)
@@ -69,11 +74,14 @@ func getUrlsFromExcelCellRange(excelFileName string, cellRange string, sheetInde
 	}
 }
 
+// Opens the given Url with the default browser of the user
 func openUrl(url string) {
 	log.Println("Trying to open the following url:", url)
 	webbrowser.Open(url)
 }
 
+// Parses the given cell range string (e.g: B12:C3)
+// Returns the 4 coordinates of the range: column start/end and row start/end starting from index 1
 func parseRange(cellRange string) (columnStart, columnEnd, rowStart, rowEnd int){
 	r := regexp.MustCompile("([A-Z]+)([0-9]+):([A-Z]+)([0-9]+)")
 	res := r.FindStringSubmatch(cellRange)
@@ -89,6 +97,7 @@ func parseRange(cellRange string) (columnStart, columnEnd, rowStart, rowEnd int)
 	return
 }
 
+// Returns the given values in ascending order
 func orderAsc(a int, b int) (int, int) {
 	if(a > b) {
 		return b, a
@@ -96,6 +105,7 @@ func orderAsc(a int, b int) (int, int) {
 	return a, b
 }
 
+// Converts a given column identifier in string format (e.g: "AB") to the numeric column index
 // columnindex starting with "A" = 1
 // for example: "AB" = 28
 func convertStringToColumnIndex(columnName string) int{
@@ -109,6 +119,7 @@ func convertStringToColumnIndex(columnName string) int{
 	return int(val)
 }
 
+// Downloads the response body of the given URL into the given file
 func downloadFromUrl(url string, fileName string) {
 	log.Println("Downloading", url, "to", fileName)
 
