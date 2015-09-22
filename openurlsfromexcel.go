@@ -55,13 +55,25 @@ func openUrlsFromExcelCellRange(excelFileName string, cellRange string, sheetInd
 	if error != nil {
 		log.Fatalln("Error while opening excel file", excelFileName)
 	}
-	// sheet := xlFile.Sheets[sheetIndex]
+	log.Println("Excel File has", len(xlFile.Sheets), "sheets")
 	sheet := xlFile.Sheets[0]
+	log.Println("First Sheet has", len(sheet.Rows), "rows")
+	
 	log.Println("Trying to parse cell range", cellRange)
 	columnStart, columnEnd, rowStart, rowEnd := parseRange(cellRange)
+	log.Println("Parsed to (zero-based) rowStart:", rowStart - 1, "rowEnd:", rowEnd - 1, "columnStart:", columnStart - 1, "columnEnd:", columnEnd - 1)
+	
 	for r := rowStart - 1; r < rowEnd; r++ {
+		if len(sheet.Rows) <= r  {
+			log.Println("There is no row with rownum", r)
+			continue
+		}
 		row := sheet.Rows[r]
 		for c := columnStart - 1; c < columnEnd; c++ {
+			if (row == nil || row.Cells == nil || len(row.Cells) <= c) {
+				log.Println("Does NOT contain a valid cell value in rownum", r, "colnum", c)
+				continue
+			}
 			cellValue := row.Cells[c].String()
 			match, err := regexp.MatchString("http(s?)://", cellValue)
 			if(err != nil) {
